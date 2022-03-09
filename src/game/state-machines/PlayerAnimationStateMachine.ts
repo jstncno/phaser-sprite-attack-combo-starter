@@ -79,8 +79,12 @@ class StateMachine implements StateMachine {
   }
   setState(name: StateName): this {
     const nextState = this.stateNameMapping.get(name);
-    if (nextState) return this.transitionTo(nextState);
-    return this;
+    if (!nextState) {
+      console.log(name, this.stateNameMapping);
+      console.warn(`No state ${StateName[name]} found`);
+      return this;
+    }
+    return this.transitionTo(nextState);
   }
 
   private transitionTo(state: State): this {
@@ -88,16 +92,12 @@ class StateMachine implements StateMachine {
     currentState.onLeave();
     this.currentState.set(state);
     state.onEnter();
-    if (!state.next) return this;
-    const nextState = this.stateNameMapping.get(state.next);
-    if (nextState) return this.transitionTo(nextState);
     return this;
   }
 }
 
 interface State {
   readonly name: StateName;
-  next?: StateName;
   onEnter(): void;
   onLeave(): void;
   setNext(stateName: StateName): this;
@@ -108,10 +108,6 @@ class State implements State {
   constructor(readonly name: StateName) {}
   onEnter() {}
   onLeave() {}
-  setNext(stateName: StateName): this {
-    this.next = stateName;
-    return this;
-  }
 }
 
 const states = [
@@ -120,18 +116,17 @@ const states = [
   new State(StateName.RIGHT),
   new State(StateName.JUMPING),
   new State(StateName.LANDING),
-  new State(StateName.IDLE),
 
   new State(StateName.ATTACK_1_ANTICIPATION),
   new State(StateName.ATTACK_1_CONTACT),
   new State(StateName.ATTACK_1_RECOVERY),
 
-  new State(StateName.ATTACK_2_RECOVERY),
+  new State(StateName.ATTACK_2_ANTICIPATION),
   new State(StateName.ATTACK_2_CONTACT),
   new State(StateName.ATTACK_2_RECOVERY),
 
   new State(StateName.ATTACK_3_ANTICIPATION),
-  new State(StateName.ATTACK_1_CONTACT),
+  new State(StateName.ATTACK_3_CONTACT),
   new State(StateName.ATTACK_3_RECOVERY),
 ];
 
@@ -152,6 +147,6 @@ machine.addEventTransition(Event.LAND, StateName.LANDING, StateName.IDLE);
 machine.addEventTransition(Event.ATTACK, StateName.IDLE, StateName.ATTACK_1_ANTICIPATION);
 // machine.addEventTransition(Event.ATTACK, 'attack_1_contact', 'attack_2_aniticipation');
 // machine.addEventTransition(Event.ATTACK, 'attack_2_contact', 'attack_3_aniticipation');
-console.log(machine.eventTransitions);
+console.log(machine.stateNameMapping)
 
 export default machine;

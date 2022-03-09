@@ -7,11 +7,12 @@ export default class MainScene extends Phaser.Scene {
   private platforms?: Phaser.Physics.Arcade.StaticGroup;
   private player?: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
-  private position = writable({x: 100, y: 450});
+  private position = writable({x: 50, y: 350});
+  private attackButtonPressed = false;
 
   preload() {
     this.load.image('sky', '/assets/sky.png');
-    this.load.spritesheet('bladekeeper', '/assets/metal_bladekeeper_spritesheet.png', { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet('bladekeeper', '/assets/metal_bladekeeper_spritesheet.png', { frameWidth: 256, frameHeight: 128 });
   }
 
   create() {
@@ -24,31 +25,29 @@ export default class MainScene extends Phaser.Scene {
   update(time: number, delta: number) {
 
     const state = get(machine.currentState);
-    console.log(StateName[state.name]);
 
     switch (state.name) {
       case StateName.LEFT:
       case StateName.RIGHT:
         this.runRunState();
         break;
-      // case StateName.ATTACK_1_ANTICIPATION:
-      //   break;
       case StateName.JUMPING:
         this.runJumpingState();
-        if (this.player.body.touching.down) {
-          this.player.setVelocityY(-330);
-        } else {
-          const {y} = get(this.position);
-          if (y < this.player.body.y) {
-            machine.triggerEvent(Event.FALL);
-          }
-        }
         break;
       case StateName.LANDING:
         this.runLandingState();
-        if (this.player.body.touching.down) {
-          machine.triggerEvent(Event.LAND);
-        }
+        break;
+      case StateName.ATTACK_1_ANTICIPATION:
+        this.player.anims.play('attack_1_anticipation', /* ignoreIfPlaying */ true);
+        break;
+      case StateName.ATTACK_1_CONTACT:
+        this.player.anims.play('attack_1_contact', /* ignoreIfPlaying */ true);
+        break;
+      case StateName.ATTACK_1_RECOVERY:
+        this.player.anims.play('attack_1_recovery', /* ignoreIfPlaying */ true);
+        break;
+      case StateName.ATTACK_2_ANTICIPATION:
+        this.player.anims.play('attack_2_anticipation', /* ignoreIfPlaying */ true);
         break;
       case StateName.IDLE:
       default:
@@ -87,8 +86,9 @@ export default class MainScene extends Phaser.Scene {
     // The player and its settings
     this.player = this.physics.add.sprite(x, y, 'bladekeeper').setScale(2);
     // Player physics properties. Give the little guy a slight bounce.
-    this.player.setBounce(0.2);
-    this.player.setCollideWorldBounds(true);
+    this.player.setBounce(0.2).setCollideWorldBounds(true)//.setSize(64, 64);
+    this.player.setSize(64, 64).setOffset(96, 64);
+
 
     // Our player animations, turning, walking left and walking right.
     this.anims.create({
@@ -107,6 +107,7 @@ export default class MainScene extends Phaser.Scene {
       key: 'jump',
       frames: this.anims.generateFrameNumbers('bladekeeper', { start: 17, end: 21 }),
       frameRate: 10,
+      repeat: -1,
     });
     this.anims.create({
       key: 'fall',
@@ -115,10 +116,53 @@ export default class MainScene extends Phaser.Scene {
       repeat: -1,
     });
 
+    this.anims.create({
+      key: 'attack_1_anticipation',
+      // frames: this.anims.generateFrameNumbers('bladekeeper', { start: 65, end: 82 }),
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 64, end: 64 }),
+      frameRate: 10,
+    });
+    this.anims.create({
+      key: 'attack_1_contact',
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 65, end: 66 }),
+      duration: 200,
+    });
+    this.anims.create({
+      key: 'attack_1_recovery',
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 66, end: 67 }),
+      duration: 50,
+    });
+    this.anims.create({
+      key: 'attack_2_anticipation',
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 68, end: 70 }),
+      // frames: this.anims.generateFrameNumbers('bladekeeper', { start: 68, end: 82 }),
+      frameRate: 10,
+    });
+
 
     this.player.on('animationcomplete', (anim: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame, sprite: Phaser.GameObjects.Sprite) => {
-      // switch (anim.key) {}
-      console.log(anim);
+      // console.log(anim.key)
+      switch (anim.key) {
+        case 'attack_1_anticipation':
+          machine.setState(StateName.ATTACK_1_CONTACT);
+          break;
+        case 'attack_1_contact':
+          if (this.attackButtonPressed) {
+            machine.setState(StateName.ATTACK_2_ANTICIPATION);
+          } else {
+            machine.setState(StateName.ATTACK_1_RECOVERY);
+          }
+          break;
+        case 'attack_1_recovery':
+          machine.setState(StateName.IDLE);
+          break;
+        case 'attack_2_anticipation':
+          machine.setState(StateName.IDLE);
+          break;
+        default:
+          break;
+        }
+      this.attackButtonPressed = false;
     });
   }
 
@@ -133,7 +177,10 @@ export default class MainScene extends Phaser.Scene {
     this.cursors.left.addListener('up', () => machine.triggerEvent(Event.LEFT_UP));
     this.cursors.right.addListener('up', () => machine.triggerEvent(Event.RIGHT_UP));
     this.cursors.up.addListener('down', () => machine.triggerEvent(Event.JUMP));
-    this.cursors.space.addListener('down', () => machine.triggerEvent(Event.ATTACK));
+    this.cursors.space.addListener('down', () => {
+      machine.triggerEvent(Event.ATTACK);
+      this.attackButtonPressed = true;
+    });
   }
 
   private checkInput() {
@@ -164,9 +211,17 @@ export default class MainScene extends Phaser.Scene {
 
   private runJumpingState() {
     this.player.anims.play('jump', /* ignoreIfPlaying */ true);
+    if (this.player.body.touching.down) {
+      this.player.setVelocityY(-330);
+    } else if (this.player.body.velocity.y > 0) {
+      machine.triggerEvent(Event.FALL);
+    }
   }
 
   private runLandingState() {
     this.player.anims.play('fall', /* ignoreIfPlaying */ true);
+    if (this.player.body.touching.down) {
+      machine.triggerEvent(Event.LAND);
+    }
   }
 }
