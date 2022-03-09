@@ -7,7 +7,7 @@ export default class MainScene extends Phaser.Scene {
   private platforms?: Phaser.Physics.Arcade.StaticGroup;
   private player?: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
-  private position = writable({x: 50, y: 350});
+  private position = writable({x: 400, y: 350});
   private attackButtonPressed = false;
 
   preload() {
@@ -49,6 +49,21 @@ export default class MainScene extends Phaser.Scene {
       case StateName.ATTACK_2_ANTICIPATION:
         this.player.anims.play('attack_2_anticipation', /* ignoreIfPlaying */ true);
         break;
+      case StateName.ATTACK_2_CONTACT:
+        this.player.anims.play('attack_2_contact', /* ignoreIfPlaying */ true);
+        break;
+      case StateName.ATTACK_2_RECOVERY:
+        this.player.anims.play('attack_2_recovery', /* ignoreIfPlaying */ true);
+        break;
+      case StateName.ATTACK_3_ANTICIPATION:
+        this.player.anims.play('attack_3_anticipation', /* ignoreIfPlaying */ true);
+        break;
+      case StateName.ATTACK_3_CONTACT:
+        this.player.anims.play('attack_3_contact', /* ignoreIfPlaying */ true);
+        break;
+      case StateName.ATTACK_3_RECOVERY:
+        this.player.anims.play('attack_3_recovery', /* ignoreIfPlaying */ true);
+        break;
       case StateName.IDLE:
       default:
         this.runIdleState();
@@ -88,8 +103,10 @@ export default class MainScene extends Phaser.Scene {
     // Player physics properties. Give the little guy a slight bounce.
     this.player.setBounce(0.2).setCollideWorldBounds(true)//.setSize(64, 64);
     this.player.setSize(64, 64).setOffset(96, 64);
+    this.createPlayerAnimations();
+  }
 
-
+  private createPlayerAnimations() {
     // Our player animations, turning, walking left and walking right.
     this.anims.create({
       key: 'run',
@@ -118,25 +135,51 @@ export default class MainScene extends Phaser.Scene {
 
     this.anims.create({
       key: 'attack_1_anticipation',
-      // frames: this.anims.generateFrameNumbers('bladekeeper', { start: 65, end: 82 }),
-      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 64, end: 64 }),
-      frameRate: 10,
-    });
-    this.anims.create({
-      key: 'attack_1_contact',
-      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 65, end: 66 }),
-      duration: 200,
-    });
-    this.anims.create({
-      key: 'attack_1_recovery',
-      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 66, end: 67 }),
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 71, end: 71 }),
       duration: 50,
     });
     this.anims.create({
+      key: 'attack_1_contact',
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 72, end: 73 }),
+      duration: 250,
+    });
+    this.anims.create({
+      key: 'attack_1_recovery',
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 74, end: 74 }),
+      duration: 125,
+    });
+
+    this.anims.create({
       key: 'attack_2_anticipation',
-      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 68, end: 70 }),
-      // frames: this.anims.generateFrameNumbers('bladekeeper', { start: 68, end: 82 }),
-      frameRate: 10,
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 73, end: 74 }),
+      // frames: this.anims.generateFrameNumbers('bladekeeper', { start: 77, end: 97 }),
+      duration: 70,
+    });
+    this.anims.create({
+      key: 'attack_2_contact',
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 75, end: 80 }),
+      duration: 400,
+    });
+    this.anims.create({
+      key: 'attack_2_recovery',
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 81, end: 82 }),
+      duration: 150,
+    });
+
+    this.anims.create({
+      key: 'attack_3_anticipation',
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 81, end: 82 }),
+      duration: 100,
+    });
+    this.anims.create({
+      key: 'attack_3_contact',
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 83, end: 96 }),
+      duration: 1200,
+    });
+    this.anims.create({
+      key: 'attack_3_recovery',
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 96, end: 98 }),
+      duration: 200,
     });
 
 
@@ -147,16 +190,29 @@ export default class MainScene extends Phaser.Scene {
           machine.setState(StateName.ATTACK_1_CONTACT);
           break;
         case 'attack_1_contact':
-          if (this.attackButtonPressed) {
-            machine.setState(StateName.ATTACK_2_ANTICIPATION);
-          } else {
-            machine.setState(StateName.ATTACK_1_RECOVERY);
-          }
+          if (this.attackButtonPressed) machine.setState(StateName.ATTACK_2_ANTICIPATION);
+          else machine.setState(StateName.ATTACK_1_RECOVERY);
           break;
         case 'attack_1_recovery':
           machine.setState(StateName.IDLE);
           break;
         case 'attack_2_anticipation':
+          machine.setState(StateName.ATTACK_2_CONTACT);
+          break;
+        case 'attack_2_contact':
+          if (this.attackButtonPressed) machine.setState(StateName.ATTACK_3_ANTICIPATION);
+          else machine.setState(StateName.ATTACK_2_RECOVERY);
+          break;
+        case 'attack_2_recovery':
+          machine.setState(StateName.IDLE);
+          break;
+        case 'attack_3_anticipation':
+          machine.setState(StateName.ATTACK_3_CONTACT);
+          break;
+        case 'attack_3_contact':
+          machine.setState(StateName.ATTACK_3_RECOVERY);
+          break;
+        case 'attack_3_recovery':
           machine.setState(StateName.IDLE);
           break;
         default:

@@ -6,7 +6,6 @@
 	let gameContainer: HTMLElement;
 
 	onMount(() => {
-		console.log(gameContainer)
 		const game = new Phaser.Game(config);
 	});
 
