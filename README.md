@@ -1,7 +1,10 @@
-# svelte-phaser-starter
+# phaser-sprite-attack-combo-starter
 
 Starter kit for bootstrapping [Phaser 3](https://phaser.io/) games using
 [Svelte](https://svelte.dev).
+
+This template comes with a state machine to drive the player sprite's attack
+combo mechanics.
 
 To create a new project based on this template using
 [degit](https://github.com/Rich-Harris/degit):
@@ -29,6 +32,11 @@ npm run dev
 ```
 
 Navigate to [localhost:8080](http://localhost:8080). You should see your app running. Edit a component file in `src`, save it, and reload the page to see your changes.
+
+Use Arrow Keys to move around. You can attack by pressing the Space Bar.
+
+You can also chain up to a 3-attack combo by pressing the attack button in a
+time sequence.
 
 By default, the server will only respond to requests from localhost. To allow connections from other computers, edit the `sirv` commands in package.json to include the option `--host 0.0.0.0`.
 
