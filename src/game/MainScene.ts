@@ -140,29 +140,28 @@ export default class MainScene extends Phaser.Scene {
     });
     this.anims.create({
       key: 'attack_1_contact',
-      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 72, end: 73 }),
-      duration: 250,
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 72, end: 75 }),
+      duration: 300,
     });
     this.anims.create({
       key: 'attack_1_recovery',
-      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 74, end: 74 }),
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 76, end: 76 }),
       duration: 125,
     });
 
     this.anims.create({
       key: 'attack_2_anticipation',
-      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 73, end: 74 }),
-      // frames: this.anims.generateFrameNumbers('bladekeeper', { start: 77, end: 97 }),
-      duration: 70,
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 76, end: 78 }),
+      duration: 100,
     });
     this.anims.create({
       key: 'attack_2_contact',
-      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 75, end: 80 }),
-      duration: 400,
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 78, end: 80 }),
+      duration: 300,
     });
     this.anims.create({
       key: 'attack_2_recovery',
-      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 81, end: 82 }),
+      frames: this.anims.generateFrameNumbers('bladekeeper', { start: 81, end: 81 }),
       duration: 150,
     });
 
